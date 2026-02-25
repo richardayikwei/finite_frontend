@@ -1,6 +1,7 @@
 import { useState } from "react"
 import axios from "axios"
 import { useDarkMode } from "../hooks/useDarkMode"
+import { useEffect } from "react"
 import ReCAPTCHA from "react-google-recaptcha"
 
 export default function Home() {
@@ -11,6 +12,20 @@ export default function Home() {
   const [message, setMessage] = useState("")
   const { dark, setDark } = useDarkMode()
   const [token, setToken] = useState<string | null>(null)
+  const [count, setCount] = useState<number | null>(null)
+
+  useEffect(() => {
+  const fetchCount = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/password-count")
+      setCount(res.data.count)
+    } catch (err) {
+      console.error("Failed to fetch password count")
+    }
+  }
+
+  fetchCount()
+}, [])
 
   const validateLength = (value: string) => {
     if (value.includes(".")) {
@@ -40,6 +55,9 @@ export default function Home() {
       captcha_token: "TOKEN"
     })
 
+    const countRes = await axios.get("http://localhost:8000/password-count")
+    setCount(countRes.data.count)
+
     if (response.data.status === "robot") {
       setMessage("Welcome kin. Robots do not need passwords.")
       setTimeout(() => setLoading(false), 2000)
@@ -67,7 +85,14 @@ export default function Home() {
         `}
         >
             {dark ? "🌙 Dark" : "☀️ Light"}
-        </button>
+      </button>
+
+      {count !== null && (
+     <div className="absolute top-5 left-1/2 -translate-x-1/2 text-sm opacity-70">
+        Passwords generated: <span className="font-semibold">{count}</span>
+     </div>
+        )}
+    
 
       <div className="flex flex-col items-center gap-4">
         <input
