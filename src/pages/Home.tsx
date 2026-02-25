@@ -20,7 +20,7 @@ export default function Home() {
   // 🔥 Reusable count fetcher
   const fetchCount = async () => {
     try {
-      const res = await axios.get(`${API}`)
+      const res = await axios.get(`${API}/count`)
       setCount(res.data.passwords_generated)   // ✅ correct key
     } catch {
       console.error("Failed to fetch password count")
