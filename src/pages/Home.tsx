@@ -121,7 +121,7 @@ export default function Home() {
         {loading && (
             <ReCAPTCHA
                 sitekey={SITE_KEY}
-                onChange={(value) => setToken(value)}
+                onChange={(value : string | null) => setToken(value)}
             />
         )}
 
