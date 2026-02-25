@@ -55,10 +55,19 @@ export default function Home() {
 
       <button
         onClick={() => setDark(!dark)}
-        className="absolute top-5 right-5"
-      >
-        Toggle Mode
-      </button>
+        className={`
+            absolute top-5 right-5
+            px-4 py-2 rounded-lg font-medium
+            transition-all duration-200
+            shadow-md
+            bg-gray-200 text-gray-800
+            dark:bg-gray-700 dark:text-white
+            hover:bg-gray-300 dark:hover:bg-gray-600
+            active:scale-95 active:shadow-inner
+        `}
+        >
+            {dark ? "🌙 Dark" : "☀️ Light"}
+        </button>
 
       <div className="flex flex-col items-center gap-4">
         <input
@@ -71,10 +80,17 @@ export default function Home() {
         {warning && <p className="text-red-500">{warning}</p>}
 
         <button
-          onClick={handleGenerate}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+            onClick={handleGenerate}
+            disabled={loading}
+            className={`
+                px-6 py-2 rounded-lg font-semibold transition-all duration-200
+                bg-blue-600 text-white
+                hover:bg-blue-700
+                active:scale-95 active:bg-blue-800
+                disabled:opacity-50 disabled:cursor-not-allowed
+            `}
         >
-          Generate
+            {loading ? "Scanning..." : "Generate"}
         </button>
 
         {loading && (
