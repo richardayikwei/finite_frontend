@@ -17,17 +17,18 @@ export default function Home() {
 
   const { dark, setDark } = useDarkMode()
 
+  // 🔥 Reusable count fetcher
+  const fetchCount = async () => {
+    try {
+      const res = await axios.get(`${API}`)
+      setCount(res.data.passwords_generated)   // ✅ correct key
+    } catch {
+      console.error("Failed to fetch password count")
+    }
+  }
+
   // Fetch password count on load
   useEffect(() => {
-    const fetchCount = async () => {
-      try {
-        const res = await axios.get(`${API}`)
-        setCount(res.data.passwords_generated)
-      } catch {
-        console.error("Failed to fetch password count")
-      }
-    }
-
     fetchCount()
   }, [])
 
@@ -62,9 +63,8 @@ export default function Home() {
         captcha_token: value,
       })
 
-      // Refresh counter
-      const countRes = await axios.get(`${API}`)
-      setCount(countRes.data.count)
+      // 🔥 Refresh counter after generation
+      await fetchCount()
 
       if (response.data.status === "robot") {
         setMessage("Welcome kin. Robots do not need passwords.")
@@ -123,22 +123,6 @@ export default function Home() {
           {loading ? "Scanning..." : "Generate"}
         </button>
 
-        {(showCaptcha || loading) && (
-  <div className="absolute inset-0 bg-black/70 flex items-center justify-center flex-col text-white z-50">
-    
-    <div className="animate-pulse text-4xl mb-4">👀</div>
-
-    <p className="mb-6 text-center">{message}</p>
-
-    {showCaptcha && !loading && (
-      <ReCAPTCHA
-        sitekey={SITE_KEY}
-        onChange={handleCaptchaChange}
-      />
-    )}
-
-  </div>
-)}
         {/* Generated Password */}
         {password && (
           <p className="mt-4 font-mono bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded">
@@ -147,11 +131,18 @@ export default function Home() {
         )}
       </div>
 
-      {/* Overlay */}
+      {/* Overlay (Single — fixed) */}
       {(showCaptcha || loading) && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center flex-col text-white">
-          <div className="animate-pulse text-4xl">👀</div>
-          <p className="mt-4">{message}</p>
+        <div className="absolute inset-0 bg-black/70 flex items-center justify-center flex-col text-white z-50">
+          <div className="animate-pulse text-4xl mb-4">👀</div>
+          <p className="mb-6 text-center">{message}</p>
+
+          {showCaptcha && !loading && (
+            <ReCAPTCHA
+              sitekey={SITE_KEY}
+              onChange={handleCaptchaChange}
+            />
+          )}
         </div>
       )}
     </div>
