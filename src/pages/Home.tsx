@@ -22,7 +22,7 @@ export default function Home() {
     const fetchCount = async () => {
       try {
         const res = await axios.get(`${API}`)
-        setCount(res.data.count)
+        setCount(res.data.passwords_generated)
       } catch {
         console.error("Failed to fetch password count")
       }
