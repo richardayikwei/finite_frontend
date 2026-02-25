@@ -123,14 +123,22 @@ export default function Home() {
           {loading ? "Scanning..." : "Generate"}
         </button>
 
-        {/* CAPTCHA */}
-        {showCaptcha && !loading && (
-          <ReCAPTCHA
-            sitekey={SITE_KEY}
-            onChange={handleCaptchaChange}
-          />
-        )}
+        {(showCaptcha || loading) && (
+  <div className="absolute inset-0 bg-black/70 flex items-center justify-center flex-col text-white z-50">
+    
+    <div className="animate-pulse text-4xl mb-4">👀</div>
 
+    <p className="mb-6 text-center">{message}</p>
+
+    {showCaptcha && !loading && (
+      <ReCAPTCHA
+        sitekey={SITE_KEY}
+        onChange={handleCaptchaChange}
+      />
+    )}
+
+  </div>
+)}
         {/* Generated Password */}
         {password && (
           <p className="mt-4 font-mono bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded">
