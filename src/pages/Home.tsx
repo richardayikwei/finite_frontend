@@ -14,10 +14,13 @@ export default function Home() {
   const [token, setToken] = useState<string | null>(null)
   const [count, setCount] = useState<number | null>(null)
 
+  const API = import.meta.env.VITE_API_BASE_URL
+  const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY
+
   useEffect(() => {
   const fetchCount = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/password-count")
+      const res = await axios.get(`${API}`)
       setCount(res.data.count)
     } catch (err) {
       console.error("Failed to fetch password count")
@@ -45,17 +48,14 @@ export default function Home() {
     }
 
     setLoading(true)
-    setMessage("If you are one of us solve this.")
+    setMessage("If you are one of us solve this.")   
 
-    // TODO: Integrate captcha token here
-    
-
-    const response = await axios.post("http://localhost:8000/generate-password", {
+    const response = await axios.post(`${API}/generate/`, {
       length: parseInt(length),
-      captcha_token: "TOKEN"
+      captcha_token: token
     })
 
-    const countRes = await axios.get("http://localhost:8000/password-count")
+    const countRes = await axios.get(`${API}`)
     setCount(countRes.data.count)
 
     if (response.data.status === "robot") {
@@ -120,7 +120,7 @@ export default function Home() {
 
         {loading && (
             <ReCAPTCHA
-                sitekey="YOUR_SITE_KEY"
+                sitekey={SITE_KEY}
                 onChange={(value) => setToken(value)}
             />
         )}
