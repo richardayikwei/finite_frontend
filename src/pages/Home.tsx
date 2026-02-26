@@ -58,7 +58,7 @@ export default function Home() {
     setLoading(true)
 
     try {
-      const response = await axios.post(`${API}/generate/`, {
+      const response = await axios.post(`${API}/generate`, {
         length: Number(length),
         captcha_token: value,
       })
