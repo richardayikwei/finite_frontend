@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import axios from "axios"
 import { useDarkMode } from "../hooks/useDarkMode"
 import ReCAPTCHA from "react-google-recaptcha"
+import eyesVideo from "../assets/eyes.mp4"
 
 const API = import.meta.env.VITE_API_BASE_URL
 const SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY
@@ -15,22 +16,36 @@ export default function Home() {
   const [count, setCount] = useState<number | null>(null)
   const [showCaptcha, setShowCaptcha] = useState(false)
 
+  const videoRef = useRef<HTMLVideoElement | null>(null)
   const { dark, setDark } = useDarkMode()
 
-  // 🔥 Reusable count fetcher
+  // Fetch counter
   const fetchCount = async () => {
     try {
       const res = await axios.get(`${API}/count`)
-      setCount(res.data.passwords_generated)   // ✅ correct key
+      setCount(res.data.passwords_generated)
     } catch {
       console.error("Failed to fetch password count")
     }
   }
 
-  // Fetch password count on load
   useEffect(() => {
     fetchCount()
   }, [])
+
+  // Start video AFTER overlay fades in
+  useEffect(() => {
+    if (showCaptcha || loading) {
+      const timer = setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.currentTime = 0
+          videoRef.current.play()
+        }
+      }, 200) // delay for overlay fade
+
+      return () => clearTimeout(timer)
+    }
+  }, [showCaptcha, loading])
 
   // Validate input
   const validateLength = (value: string) => {
@@ -47,11 +62,12 @@ export default function Home() {
     if (loading || showCaptcha) return
     if (!length || warning || Number(length) <= 0) return
 
+    setPassword("")
     setShowCaptcha(true)
     setMessage("If you are one of us solve this.")
   }
 
-  // Captcha solved → call backend
+  // CAPTCHA solved → call backend
   const handleCaptchaChange = async (value: string | null) => {
     if (!value) return
 
@@ -63,7 +79,6 @@ export default function Home() {
         captcha_token: value,
       })
 
-      // 🔥 Refresh counter after generation
       await fetchCount()
 
       if (response.data.status === "robot") {
@@ -95,11 +110,10 @@ export default function Home() {
         {dark ? "🌙 Dark" : "☀️ Light"}
       </button>
 
-      {/* Password Counter */}
+      {/* Counter */}
       {count !== null && (
         <div className="absolute top-5 left-1/2 -translate-x-1/2 text-sm opacity-70">
-          Passwords generated:{" "}
-          <span className="font-semibold">{count}</span>
+          Passwords generated: <span className="font-semibold">{count}</span>
         </div>
       )}
 
@@ -123,7 +137,6 @@ export default function Home() {
           {loading ? "Scanning..." : "Generate"}
         </button>
 
-        {/* Generated Password */}
         {password && (
           <p className="mt-4 font-mono bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded">
             {password}
@@ -131,20 +144,31 @@ export default function Home() {
         )}
       </div>
 
-      {/* Overlay (Single — fixed) */}
-      {(showCaptcha || loading) && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center flex-col text-white z-50">
-          <div className="animate-pulse text-4xl mb-4">👀</div>
-          <p className="mb-6 text-center">{message}</p>
+      {/* Overlay */}
+      <div
+        className={`absolute inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center flex-col text-white z-50 transition-opacity duration-500 ${
+          showCaptcha || loading ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        <video
+          ref={videoRef}
+          src={eyesVideo}
+          muted
+          playsInline
+          className="w-48 md:w-64 lg:w-80 mb-6 drop-shadow-2xl"
+        />
 
-          {showCaptcha && !loading && (
-            <ReCAPTCHA
-              sitekey={SITE_KEY}
-              onChange={handleCaptchaChange}
-            />
-          )}
-        </div>
-      )}
+        <p className="mb-6 text-center text-lg md:text-xl font-medium tracking-wide">
+          {message}
+        </p>
+
+        {showCaptcha && !loading && (
+          <ReCAPTCHA
+            sitekey={SITE_KEY}
+            onChange={handleCaptchaChange}
+          />
+        )}
+      </div>
     </div>
   )
 }
